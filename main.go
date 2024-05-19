@@ -1,16 +1,17 @@
 package myjson
 
-import "log"
+import (
+	"fmt"
+)
 
-func Decode(input string) (map[string]interface{}, error) {
+func Decode(input string) (interface{}, error) {
 	tokens := lex(input)
-	data, remainder, err := parseObject(tokens)
+	data, remainder, err := Parse(tokens)
 	if err != nil {
 		return nil, err
 	}
 	if len(remainder) > 0 {
-		log.Panicf("Failed to parse complete document. Remainging tokens: %v", remainder)
+		return nil, fmt.Errorf("Failed to parse complete document. Remaining tokens: %v", remainder)
 	}
-	return data.(map[string]interface{}), nil
-
+	return data, nil
 }

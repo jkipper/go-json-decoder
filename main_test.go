@@ -67,3 +67,17 @@ func TestObjInsideSlice(t *testing.T) {
 	}
 	assert.Equal(t, expectedOutput, out)
 }
+
+func TestJustSlice(t *testing.T) {
+	input := `
+	[10,20,30,"string"]
+	`
+	expectedOutput := []interface{}{
+		10, 20, 30, "string",
+	}
+
+	out, err := myjson.Decode(input)
+	require.Nil(t, err)
+	assert.Equal(t, expectedOutput, out)
+
+}

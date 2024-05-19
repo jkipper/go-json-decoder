@@ -15,7 +15,20 @@ func (err *DecodeError) Error() string {
 	return "Expected '" + err.Expected + "' got '" + err.Got + "'"
 }
 
-func parseObject(input []string) (interface{}, []string, error) {
+type Tokens []string
+
+func Parse(input Tokens) (interface{}, Tokens, error) {
+	switch input[0] {
+	case "{":
+		return parseObject(input)
+	case "[":
+		return parseSlice(input)
+	default:
+		return nil, input, fmt.Errorf("Invalid start character %w", &DecodeError{Expected: "{ or [", Got: input[0]})
+	}
+}
+
+func parseObject(input Tokens) (interface{}, Tokens, error) {
 	out := make(map[string]interface{})
 	if input[0] == "{" {
 		input = input[1:]
@@ -48,7 +61,7 @@ func parseObject(input []string) (interface{}, []string, error) {
 	return out, input[1:], nil
 }
 
-func parseKey(input []string) (string, []string, error) {
+func parseKey(input Tokens) (string, Tokens, error) {
 	got, remaining, err := parseString(input)
 	if err != nil {
 		return "", nil, err
@@ -60,7 +73,7 @@ func parseKey(input []string) (string, []string, error) {
 	return got.(string), remaining, nil
 }
 
-func parseString(input []string) (interface{}, []string, error) {
+func parseString(input Tokens) (interface{}, Tokens, error) {
 	token := input[0]
 	if token[0] == '"' {
 		return token[1 : len(token)-1], input[1:], nil
@@ -68,8 +81,8 @@ func parseString(input []string) (interface{}, []string, error) {
 	return "", input, nil
 }
 
-func parseValue(input []string) (interface{}, []string, error) {
-	parsers := []func([]string) (interface{}, []string, error){
+func parseValue(input Tokens) (interface{}, Tokens, error) {
+	parsers := []func(Tokens) (interface{}, Tokens, error){
 		parseString, parseObject, parseNumber, parseSlice, parseBool,
 	}
 	for _, parser := range parsers {
@@ -85,7 +98,7 @@ func parseValue(input []string) (interface{}, []string, error) {
 	return nil, nil, err
 }
 
-func parseSlice(input []string) (interface{}, []string, error) {
+func parseSlice(input Tokens) (interface{}, Tokens, error) {
 	if input[0] != "[" {
 		return nil, input, nil
 	} else {
@@ -112,7 +125,7 @@ func parseSlice(input []string) (interface{}, []string, error) {
 	return out, input[1:], nil
 }
 
-func parseBool(input []string) (interface{}, []string, error) {
+func parseBool(input Tokens) (interface{}, Tokens, error) {
 	token := input[0]
 	if token == "true" {
 		return true, input[1:], nil
@@ -124,7 +137,7 @@ func parseBool(input []string) (interface{}, []string, error) {
 
 }
 
-func parseNumber(input []string) (interface{}, []string, error) {
+func parseNumber(input Tokens) (interface{}, Tokens, error) {
 	token := input[0]
 	isNumber := token[0] >= '0' && token[0] <= '9'
 	if !isNumber {
