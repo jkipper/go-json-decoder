@@ -5,13 +5,15 @@ import (
 	myjson "user/json"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestInput(t *testing.T) {
 	input := `
 	{ "key": "value", "second_key": 10, "nested": {"key": "value", "slice": [10, 20], "bool": true}}
 	`
-	out := myjson.Decode(input)
+	out, err := myjson.Decode(input)
+	require.Nil(t, err)
 	expected := map[string]interface{}{
 		"key":        "value",
 		"second_key": 10,
@@ -30,9 +32,19 @@ func TestEscapedString(t *testing.T) {
 		"key" : "valu\"e"
 	}
 	`
-	out := myjson.Decode(input)
+	out, err := myjson.Decode(input)
+	require.Nil(t, err)
 	expected := map[string]interface{}{
 		"key": "valu\\\"e",
 	}
 	assert.Equal(t, expected, out)
+}
+
+func TestMissingSeparator(t *testing.T) {
+	input := `
+	{"key1": "value1" "key2": "value2" }
+	`
+	_, err := myjson.Decode(input)
+	expectedErr := &myjson.DecodeError{}
+	require.ErrorAs(t, err, &expectedErr)
 }
