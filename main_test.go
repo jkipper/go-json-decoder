@@ -10,7 +10,13 @@ import (
 
 func TestInput(t *testing.T) {
 	input := `
-	{ "key": "value", "second_key": 10, "nested": {"key": "value", "slice": [10, 20], "bool": true}}
+	{ "key": "value",
+	"second_key": 10, 
+	"nested": {"key":
+	"value",
+		
+		"slice": [10, 20], 
+	"bool": true}}
 	`
 	out, err := myjson.Decode(input)
 	require.Nil(t, err)
@@ -47,4 +53,17 @@ func TestMissingSeparator(t *testing.T) {
 	_, err := myjson.Decode(input)
 	expectedErr := &myjson.DecodeError{}
 	require.ErrorAs(t, err, &expectedErr)
+}
+
+func TestObjInsideSlice(t *testing.T) {
+	input := `
+		{"key": [ {"key": "value"} ]}
+	`
+	out, err := myjson.Decode(input)
+	require.Nil(t, err)
+
+	expectedOutput := map[string]interface{}{
+		"key": []interface{}{map[string]interface{}{"key": "value"}},
+	}
+	assert.Equal(t, expectedOutput, out)
 }

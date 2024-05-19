@@ -11,6 +11,6 @@ func Decode(input string) (map[string]interface{}, error) {
 	if len(remainder) > 0 {
 		log.Panicf("Failed to parse complete document. Remainging tokens: %v", remainder)
 	}
-	return data, nil
+	return data.(map[string]interface{}), nil
 
 }
